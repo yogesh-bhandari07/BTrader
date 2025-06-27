@@ -51,8 +51,17 @@ bot = Bot(token=TELEGRAM_BOT_TOKEN)
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # The prompt to submit every 15 minutes
-PROMPT = """Act as a professional NIFTY options trader and market analyst. Based on current market conditions (today’s data), give me the best intraday options trade on NIFTY index. Include only 1–2 high-probability trades.
-For each option trade, include the following:
+PROMPT = """Act as a professional NIFTY options trader and market strategist. Based strictly on today’s live market data (price action, OI, volume, momentum, VIX, and institutional activity), provide 1–2 high-probability intraday trades on the NIFTY index options.
+Only suggest trades with strong confluence of the following:
+1. OI shift and unwinding at key strikes
+2. Volume confirmation
+3. Clear intraday price action (breakout, reversal, or retest pattern)
+4. Support/resistance zones
+5. Momentum alignment (RSI, MACD, VWAP, etc.)
+6. Institutional flow (FIIs/DIIs), news, or macro cues
+7. Avoid trades with low liquidity or weak conviction
+8. Focus on ATM or 1-strike ITM options, preferably same-day expiry if Thursday, with strong delta and good liquidity.
+For each trade, provide:
 1. Option Type (CE or PE)
 2. Strike Price
 3. Premium Entry Range
@@ -60,10 +69,10 @@ For each option trade, include the following:
 5. Stop Loss
 6. Ideal Entry Time
 7. Ideal Exit Time
-8. Confidence Level in % (based on OI, volume, trend, VIX, price action, etc.)
-9. Key Factors (OI analysis, PCR, trend, support/resistance, candle patterns, news flow, etc.)
-10. Short Reason Why this trade setup is good today
-Only include trades with strong confirmation from price action + OI shift + volume + momentum indicators. Prefer same day expiry (if Thursday), and ATM/1 strike ITM trades with good liquidity. Be concise, practical and avoid risky trades."""
+8. Confidence Level (%) (based on confluence of data)
+9. Key Technical + Derivative Factors (OI/PCR, support/resistance, trend, candle patterns, etc.)
+10. Short Justification (why this setup is valid today)
+Only share trades with clean risk-reward, momentum confirmation, and derivative strength. Avoid directional bias unless validated by data."""
 def ask_chatgpt(prompt):
     try:
         logging.info(f"Sending prompt to ChatGPT:\n{prompt}")
