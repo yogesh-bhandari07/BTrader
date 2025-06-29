@@ -9,6 +9,8 @@ import datetime
 import asyncio
 import logging
 from openai import OpenAI
+
+
 logging.basicConfig(
     filename="nifty_bot.log",
     level=logging.INFO,
@@ -145,8 +147,8 @@ def send_to_telegram(message):
 
 def run_task():
     print("Running scheduled job...")
-    if is_market_closed_today():
-        return
+    # if is_market_closed_today():
+    #     return
     raw_response = ask_chatgpt(PROMPT)
     trades = extract_trades(raw_response)
     best_trade = select_highest_confidence(trades)
@@ -158,9 +160,11 @@ def run_task():
         send_to_telegram("No valid trade found in the ChatGPT response.")
 
 # Schedule every 15 minutes
-schedule.every(30).seconds.do(run_task)
+# schedule.every(30).seconds.do(run_task)
 
 print("Running NIFTY Options Alert Bot...")
-while True:
-    schedule.run_pending()
-    time.sleep(1)
+run_task()  # Run immediately on startup
+
+# while True:
+#     run_pending()
+#     time.sleep(1)
