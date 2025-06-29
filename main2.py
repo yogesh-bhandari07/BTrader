@@ -70,15 +70,6 @@ PROMPT = """Act as a professional NIFTY options trader and market strategist. Ba
 """
 
 
-def close_auth_popup(driver):
-    try:
-        wait = WebDriverWait(driver, 10)
-        # update XPath to match actual ChatGPT popups if needed
-        close_button = wait.until(EC.element_to_be_clickable((By.XPATH, "//button[contains(text(), 'Close')]")))
-        close_button.click()
-        print("✅ Auth popup closed.", flush=True)
-    except Exception as e:
-        print(f"⚠️ Could not close popup: {e}", flush=True)
 
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
@@ -91,7 +82,7 @@ import time
 # CONFIG
 CHROMEDRIVER_PATH = r"C:\Users\Acer\Downloads\chromedriver-win64 (1)\chromedriver-win64\chromedriver.exe"  # <-- Replace with your path
 USER_DATA_DIR = r"C:\Users\Acer\AppData\Local\Google\Chrome\User Data\SeleniumProfile"
-CHATGPT_URL = "https://chatgpt.com/"
+CHATGPT_URL = "https://chatgpt.com/c/6860f6df-544c-8007-849c-8c2a4dee1c33"
 
 
 def handle_retry(driver):
@@ -129,39 +120,40 @@ from selenium.common.exceptions import (
 )
 import time
 
-# def close_auth_popup(driver):
-#     print("🔎 Attempting to close auth popup...", flush=True)
-#     wait = WebDriverWait(driver, 10)
-#     for attempt in range(3):  # retry up to 3 times
-#         try:
-#             # Example XPaths for common ChatGPT popups:
-#             popup_close_selectors = [
-#                 "//button[contains(text(), 'Okay') or contains(text(), 'Ok') or contains(text(), 'OK')]",
-#                 "//button[contains(text(), 'Got it')]",
-#                 "//button[contains(text(), 'Close')]",
-#                 "//button[contains(text(), 'Dismiss')]",
-#                 "//button[contains(@aria-label, 'Dismiss')]",
-#             ]
-#             for selector in popup_close_selectors:
-#                 elements = driver.find_elements(By.XPATH, selector)
-#                 if elements:
-#                     for el in elements:
-#                         try:
-#                             wait.until(EC.element_to_be_clickable(el))
-#                             el.click()
-#                             print(f"✅ Closed popup with selector: {selector}", flush=True)
-#                             return
-#                         except (StaleElementReferenceException, NoSuchElementException) as e:
-#                             print(f"⚠️ Popup element stale or missing: {e}", flush=True)
-#                             continue
 
-#             print(f"ℹ️ No popup elements found on attempt {attempt + 1}", flush=True)
-#             time.sleep(1)  # wait briefly before retrying
-#         except TimeoutException:
-#             print(f"⏱️ Timed out waiting for popup on attempt {attempt + 1}", flush=True)
-
-#     print("✅ No popups detected or successfully closed.", flush=True)
-
+def close_auth_popup(driver):
+    """
+    Closes ChatGPT's login/signup popups like 'Stay logged out', 'Continue', etc.,
+    by clicking both <button> and <a> elements with common texts.
+    """
+    try:
+        wait = WebDriverWait(driver, 5)
+        elements = wait.until(
+            EC.presence_of_all_elements_located(
+                (
+                    By.XPATH,
+                    '//button[contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz"), "stay logged out") '
+                    'or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz"), "continue") '
+                    'or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz"), "got it") '
+                    'or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz"), "dismiss") '
+                    'or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz"), "okay")]'
+                    '| //a[contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz"), "stay logged out") '
+                    'or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz"), "continue") '
+                    'or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz"), "got it") '
+                    'or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz"), "dismiss") '
+                    'or contains(translate(text(),"ABCDEFGHIJKLMNOPQRSTUVWXYZ","abcdefghijklmnopqrstuvwxyz"), "okay")]'
+                )
+            )
+        )
+        for el in elements:
+            try:
+                el.click()
+                print(f"🛑 Closed popup element: '{el.text.strip()}'")
+            except Exception as e:
+                print(f"⚠️ Could not click popup element: {e}")
+    except Exception:
+        # It's okay if no popup appeared
+        pass
 
 
 def ask_chatgpt_via_selenium(prompt: str) -> str:
@@ -178,12 +170,12 @@ def ask_chatgpt_via_selenium(prompt: str) -> str:
 
     try:
         driver.get(CHATGPT_URL)
-        wait = WebDriverWait(driver, 60)
+        wait = WebDriverWait(driver, 120)
 
         # Check redirect
-        # if "chat.openai.com" not in driver.current_url:
-        #     print(f"🚨 Unexpected redirect detected: {driver.current_url}", flush=True)
-        #     return "Error: Redirected from ChatGPT page. Please log in manually."
+        if "chatgpt" not in driver.current_url:
+            print(f"🚨 Unexpected redirect detected: {driver.current_url}", flush=True)
+            return "Error: Redirected from ChatGPT page. Please log in manually."
 
         print("🌐 ChatGPT page loaded. Closing popups if any...", flush=True)
         time.sleep(2)  # wait for page to stabilize
